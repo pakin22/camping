@@ -1,0 +1,99 @@
+/* ------------------------------------------------------------------- */
+/* 1. Global Reset & Normalize (หัวใจสำคัญเพื่อให้ทุก Browser เหมือนกัน) */
+/* ------------------------------------------------------------------- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box; /* บังคับให้การคำนวณขนาดกว้างยาวรวม Padding/Border เสมอ */
+  -webkit-font-smoothing: antialiased;    /* แก้ปัญหาฟอนต์หนา/บางไม่เท่ากันใน Chrome/Edge */
+  -moz-osx-font-smoothing: grayscale;      /* สำหรับ Firefox บน macOS */
+  text-rendering: optimizeLegibility;    /* ปรับปรุงการแสดงผลตัวอักษรให้คมชัดที่สุด */
+}
+
+:root {
+  /* บังคับใช้ฟอนต์ Prompt เป็นอันดับแรก และตามด้วยตระกูลไร้หัว */
+  font-family: 'Prompt', system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  /* กำหนดให้เป็นโหมดสว่างเสมอ เพื่อลดความเพี้ยนของสีระหว่าง Browser */
+  color-scheme: light; 
+  color: #213547;
+  background-color: #ffffff;
+
+  font-synthesis: none;
+}
+
+/* ------------------------------------------------------------------- */
+/* 2. การตั้งค่าโครงสร้างพื้นฐาน */
+/* ------------------------------------------------------------------- */
+html, body, #root {
+  height: 100%; 
+  width: 100%;
+  overflow-x: hidden; /* ป้องกันหน้าจอเลื่อนซ้ายขวาบนมือถือ */
+}
+
+body {
+  background-color: #ffffff;
+  /* ป้องกันการกระตุกของ Layout เมื่อมี Scrollbar */
+  overflow-y: scroll; 
+}
+
+/* ------------------------------------------------------------------- */
+/* 3. Typography & Elements (ปรับให้ทุก Platform เท่ากัน) */
+/* ------------------------------------------------------------------- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Prompt', sans-serif;
+  letter-spacing: -0.01em; /* ลดช่องว่างตัวอักษรให้ดู Modern เหมือนกันทุกที่ */
+}
+
+button, input, select, textarea {
+  /* บังคับให้ใช้นามสกุลฟอนต์เดียวกันกับ Body ไม่งั้น Browser จะใช้ฟอนต์ระบบตัวเอง */
+  font-family: inherit; 
+  font-size: inherit;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+/* ------------------------------------------------------------------- */
+/* 4. Responsive Design (Media Query สำหรับมือถือ) */
+/* ------------------------------------------------------------------- */
+@media (max-width: 768px) {
+    .auth-main-container {
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    .auth-left-column {
+        display: none !important; 
+    }
+    
+    .auth-right-column {
+        flex: none !important; 
+        width: 100% !important;
+        max-width: 100% !important; 
+        padding: 50px 25px !important; 
+        min-height: 100vh; 
+        margin: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        justify-content: flex-start !important; 
+    }
+
+    .mobile-header-logo {
+        display: block !important; 
+        margin: 0 auto 30px;
+    }
+
+    .auth-right-column h2 {
+        text-align: center;
+        font-size: 24px;
+    }
+}
