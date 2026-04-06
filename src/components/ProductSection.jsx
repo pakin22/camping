@@ -116,6 +116,7 @@ styleTag.innerHTML = `
 
         // --- Real-time Listeners ---
         useEffect(() => {
+            //การดึงข้อมูลแบบ Real-time (onSnapshot)
             const unsubCat = onSnapshot(query(collection(db, "categories"), orderBy("name", "asc")), (snap) => {
                 const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 if (list.length > 0 && !list.find(c => c.name === 'ทั่วไป')) {

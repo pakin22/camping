@@ -49,7 +49,7 @@ const [imagePreview, setImagePreview] = useState(user?.photoURL || `https://ui-a
                         setProfileData(prev => ({ ...prev, ...docSnap.data() }));
                     }
 
-                    // ดึงประวัติการสั่งซื้อ
+                    // ดึงประวัติการสั่งซื้อ และเรียงลำดับจากใหม่ไปเก่า
                     const q = query(
                         collection(db, "orders"), 
                         where("userId", "==", user.uid),

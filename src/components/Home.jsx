@@ -76,7 +76,7 @@ const ProductCard = ({ product, onAddToCart, isFavorite, onToggleFavorite }) => 
                     <p style={{ fontSize: '18px', fontWeight: '700', color: activeFlashSale ? colors.error : colors.black }}>฿{displayPrice?.toLocaleString()}</p>
                     {activeFlashSale && <span style={{ textDecoration: 'line-through', color: '#bbb', fontSize: '13px' }}>฿{product.price?.toLocaleString()}</span>}
                 </div>
-                <button onClick={(e) => { e.stopPropagation(); onAddToCart(product); }} style={styles.addButton(isHover)}>ADD TO BAG</button>
+                <button onClick={(e) => { e.stopPropagation(); onAddToCart(product); }} style={styles.addButton(isHover)}>ดูรายละเอียดสินค้า</button>
             </div>
         </div>
     );
@@ -128,7 +128,6 @@ function Home({ user, cart, addToCart, removeFromCart, updateQuantity, favorites
                         </div>
                     </div>
                 </SwiperSlide>
-                {/* เพิ่ม Slide อื่นๆ ได้ที่นี่ */}
             </Swiper>
 
             <div style={styles.sectionTitleWrapper}>

@@ -37,12 +37,14 @@ const ReportSection = ({ orders = [] }) => {
         let totalRev = 0;
 
         const filtered = orders.filter(order => {
+            // 1. แปลงวันที่ (รองรับทั้ง Firebase Timestamp และ Date ปกติ)
             const orderDate = order.createdAt?.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
             if (!orderDate || isNaN(orderDate.getTime())) return false;
-            
+            // 2. ตัดออเดอร์ที่ 'ยกเลิก' หรือ 'รอกดชำระเงิน' ออกไป (ไม่นำมาคิดเป็นรายได้จริง)
             const status = (order.status || '').toLowerCase();
             if (['cancelled', 'pending'].includes(status)) return false;
-
+            
+            // 3. เช็คเงื่อนไขเวลา (วันนี้ / เดือนนี้ / เลือกเอง)
             if (timeRange === 'today') return orderDate.toDateString() === now.toDateString();
             if (timeRange === 'month') return orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear();
             if (timeRange === 'custom') {

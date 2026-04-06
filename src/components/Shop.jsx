@@ -76,7 +76,7 @@ const styles = {
 // --- Helpers ---
 const isSaleActive = (endDate) => {
     if (!endDate) return false;
-    const now = new Date();
+    const now = new Date(); //เวลาปัจจุบันของผู้ใช้
     const end = endDate.seconds ? new Date(endDate.seconds * 1000) : new Date(endDate);
     return end > now;
 };
@@ -85,12 +85,12 @@ const isSaleActive = (endDate) => {
 const CountdownTimer = ({ endDate, showLabel = false }) => {
     const calculateTimeLeft = () => {
         const end = endDate?.seconds ? new Date(endDate.seconds * 1000) : new Date(endDate);
-        const diff = +end - +new Date();
+        const diff = +end - +new Date(); // นำเวลามาลบกันในหน่วยมิลลิวินาที การใส่เครื่องหมายบวกหน้าวัตถุที่เป็น Date จะเป็นการบังคับให้ JavaScript เปลี่ยน "วันที่" ให้กลายเป็นตัวเลข
         if (diff <= 0) return null;
         return {
-            h: Math.floor(diff / (1000 * 60 * 60)),
+            h: Math.floor(diff / (1000 * 60 * 60)), //เอา 1,000 (มิลลิวินาที) 60 (วินาที)  60 (นาที) เพื่อหาว่ามีกี่ชั่วโมง
             m: Math.floor((diff / 1000 / 60) % 60),
-            s: Math.floor((diff / 1000) % 60)
+            s: Math.floor((diff / 1000) % 60) //วินาที (s)
         };
     };
     const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
@@ -192,18 +192,16 @@ function Shop({ user, cart, favorites, toggleFavorite, onSignOut, removeFromCart
         };
         fetchData();
     }, []);
-
+    // 1. กรองเอาเฉพาะสินค้าที่กำลัง Flash Sale อยู่จริงๆ
     const flashSaleProducts = products.filter(p => p.isFlashSale && isSaleActive(p.saleEndDate));
+    // 2. เช็คว่าตอนนี้มีสินค้าลดราคาอยู่ไหม (ถ้าความยาว Array มากกว่า 0 แปลว่ามี)
     const hasActiveFlashSale = flashSaleProducts.length > 0;
-    const nearestEndDate = hasActiveFlashSale 
-        ? flashSaleProducts.sort((a,b) => (a.saleEndDate.seconds || 0) - (b.saleEndDate.seconds || 0))[0].saleEndDate 
-        : null;
-
-        const filteredProducts = products.filter(p => {
-    // แก้ไขบรรทัดนี้: ถ้า selectedCategory คือ "ทั้งหมด" ให้เป็น true เสมอ
+    // 3. ถ้ามี ให้ทำการ "เรียงลำดับเวลา" จากน้อยไปมาก แล้วหยิบเอาอันที่ [0] (อันที่ใกล้หมดที่สุด) มาใช้    //[0]: หลังจากเรียงเสร็จแล้ว สินค้าที่ "ใกล้หมดเวลาที่สุด" จะมาอยู่ที่ตำแหน่งแรกสุดของ Array เราจึงหยิบตัวที่ 0 มา
+    const nearestEndDate = hasActiveFlashSale ? flashSaleProducts.sort((a,b) => (a.saleEndDate.seconds || 0) - (b.saleEndDate.seconds || 0))[0].saleEndDate : null;
+    const filteredProducts = products.filter(p => {
     const matchCat = selectedCategory === "ทั้งหมด" || p.category === selectedCategory;
     
-    // เงื่อนไขราคาและการค้นหา (โค้ดเดิมของคุณ)
+    // เงื่อนไขราคาและการค้นหา
     const currentPrice = (p.isFlashSale && isSaleActive(p.saleEndDate)) ? p.salePrice : p.price;
     let matchPrice = true;
     if (selectedPrice === 'ต่ำกว่า ฿1,000') matchPrice = currentPrice < 1000;

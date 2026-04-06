@@ -226,7 +226,6 @@ const Checkout = (props) => {
             <Navbar {...props} />
             <div style={styles.container}>
                 <div style={styles.mainContent}>
-                    <h1 style={styles.title}>Check Out</h1>
 
                     {/* ข้อมูลธนาคาร */}
                     <section style={styles.cardSection}>

@@ -46,19 +46,34 @@ function Navbar({ user, cart, favorites = [], removeFromCart, updateQuantity, to
         try {
             await signOut(auth);
             setIsMenuOpen(false);
+            setNotifications([]);
             setUserRole(null);
             navigate('/');
         } catch (error) { console.error(error); }
     };
 
-    useEffect(() => {
-        if (!user) return;
-        const q = query(collection(db, "notifications"), where("userId", "==", user.uid), orderBy("updatedAt", "desc"));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            setNotifications(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        });
-        return () => unsubscribe();
-    }, [user]);
+   useEffect(() => {
+    // 1. ถ้าไม่มี user ให้หยุดทำงาน (ไม่ต้องเซ็ต state ตรงนี้)
+    if (!user) return;
+
+    const q = query(
+        collection(db, "notifications"), 
+        where("userId", "==", user.uid), 
+        orderBy("updatedAt", "desc")
+    );
+
+    // 2. เริ่มฟังข้อมูล
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        // การสั่ง setState ใน callback แบบนี้ 'ถูกต้อง' ตามกฎครับ
+        setNotifications(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    return () => {
+        unsubscribe();
+        // ล้างข้อมูลเมื่อ component ถูกถอดออก หรือ user เปลี่ยน
+        setNotifications([]); 
+    };
+}, [user]);
 
     const linkStyle = {
         textDecoration: 'none',

@@ -39,7 +39,7 @@ const WishlistDrawer = ({ isOpen, onClose, favorites = [], toggleFavorite }) => 
                     borderBottom: '1px solid #f0f0f0' 
                 }}>
                     <div>
-                        <h2 style={{ fontSize: '24px', fontWeight: '800', margin: 0, letterSpacing: '-0.5px' }}>My Wishlist</h2>
+                        <h2 style={{ fontSize: '24px', fontWeight: '800', margin: 0, letterSpacing: '-0.5px' }}>สินค้าที่ชื่นชอบ</h2>
                         <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#888' }}>
                             {favorites.length} items saved
                         </p>
