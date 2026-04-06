@@ -169,6 +169,9 @@ function Shop({ user, cart, favorites, toggleFavorite, onSignOut, removeFromCart
                     setCategories(catList);
                     setSelectedCategory(catList[0]); // ตั้งค่าเริ่มต้นเป็นหมวดหมู่แรกที่เจอ
                 }
+                const finalCategories = ["ทั้งหมด", ...catList]; 
+                setCategories(finalCategories);
+                setSelectedCategory("ทั้งหมด"); // ให้เริ่มต้นที่หมวดหมู่ "ทั้งหมด"
 
                 // 2. ดึงสินค้า
                 const prodSnap = await getDocs(collection(db, "products"));
@@ -196,20 +199,21 @@ function Shop({ user, cart, favorites, toggleFavorite, onSignOut, removeFromCart
         ? flashSaleProducts.sort((a,b) => (a.saleEndDate.seconds || 0) - (b.saleEndDate.seconds || 0))[0].saleEndDate 
         : null;
 
-    const filteredProducts = products.filter(p => {
-        // กรองตามหมวดหมู่ (ลบเงื่อนไข All Gears ออก)
-        const matchCat = p.category === selectedCategory;
-        
-        const currentPrice = (p.isFlashSale && isSaleActive(p.saleEndDate)) ? p.salePrice : p.price;
-        let matchPrice = true;
-        if (selectedPrice === 'ต่ำกว่า ฿1,000') matchPrice = currentPrice < 1000;
-        else if (selectedPrice === '฿1,000 - ฿5,000') matchPrice = currentPrice >= 1000 && currentPrice <= 5000;
-        else if (selectedPrice === 'สูงกว่า ฿5,000') matchPrice = currentPrice > 5000;
+        const filteredProducts = products.filter(p => {
+    // แก้ไขบรรทัดนี้: ถ้า selectedCategory คือ "ทั้งหมด" ให้เป็น true เสมอ
+    const matchCat = selectedCategory === "ทั้งหมด" || p.category === selectedCategory;
+    
+    // เงื่อนไขราคาและการค้นหา (โค้ดเดิมของคุณ)
+    const currentPrice = (p.isFlashSale && isSaleActive(p.saleEndDate)) ? p.salePrice : p.price;
+    let matchPrice = true;
+    if (selectedPrice === 'ต่ำกว่า ฿1,000') matchPrice = currentPrice < 1000;
+    else if (selectedPrice === '฿1,000 - ฿5,000') matchPrice = currentPrice >= 1000 && currentPrice <= 5000;
+    else if (selectedPrice === 'สูงกว่า ฿5,000') matchPrice = currentPrice > 5000;
 
-        const matchSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
 
-        return matchCat && matchPrice && matchSearch;
-    });
+    return matchCat && matchPrice && matchSearch;
+});
 
     if (loading) return <div style={{ textAlign: 'center', padding: '100px', fontFamily: 'Prompt' }}>กำลังเตรียมอุปกรณ์...</div>;
 
@@ -231,6 +235,7 @@ function Shop({ user, cart, favorites, toggleFavorite, onSignOut, removeFromCart
             <div style={{...styles.mainLayout, paddingTop: hasActiveFlashSale ? '160px' : '100px'}}>
                 <aside style={{...styles.sidebar, top: hasActiveFlashSale ? '160px' : '100px'}}>
                     <h2 style={styles.filterTitle}>หมวดหมู่</h2>
+                    
                     {categories.map(cat => (
                         <button key={cat} onClick={() => setSelectedCategory(cat)} style={styles.filterItem(selectedCategory === cat)}>{cat}</button>
                     ))}

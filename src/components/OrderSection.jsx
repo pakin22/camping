@@ -100,16 +100,12 @@ const OrderSection = ({ orders, fetchOrders, searchTerm, setSearchTerm, setSelec
     };
 
     // --- ฟังก์ชันอัปเดตสถานะ (Approve / Processing) ---
-    const updateOrderStatus = async (orderId, newStatus) => {
+   const updateOrderStatus = async (orderId, newStatus) => {
     try {
         const orderData = orders.find(o => o.id === orderId);
         if (!orderData) return;
 
-        // ดึงรายการสินค้าจากออเดอร์
-        const items = orderData.items || [];
-
         if (newStatus === 'processing') {
-            // เช็คสถานะป้องกันการกดซ้ำ
             if (orderData.status !== 'pending') {
                 alert("ออเดอร์นี้ดำเนินการไปแล้ว");
                 return;
@@ -118,23 +114,24 @@ const OrderSection = ({ orders, fetchOrders, searchTerm, setSearchTerm, setSelec
             const confirmAction = window.confirm("ยืนยันการชำระเงินและตัดสต็อกสินค้า?");
             if (!confirmAction) return;
 
+            // เริ่ม Transaction
             await runTransaction(db, async (transaction) => {
-                for (const item of items) {
-                    // ใช้ item.id เพื่ออ้างอิงไปยัง Document ในคอลเลกชัน products
-                    const productRef = doc(db, "products", item.id);
-                    const productSnap = await transaction.get(productRef);
-                    
-                    if (!productSnap.exists()) {
-                        console.warn(`ไม่พบสินค้าไอดี: ${item.id}`);
-                        continue;
-                    }
+                const items = orderData.items || [];
+                const updates = [];
 
-                    const productData = productSnap.data();
+                // --- STEP 1: READ PHASE ---
+                for (const item of items) {
+                    const productRef = doc(db, "products", item.id);
+                    const snap = await transaction.get(productRef);
+                    if (!snap.exists()) throw new Error(`Product ${item.id} not found`);
+                    updates.push({ item, snap, ref: productRef });
+                }
+
+                // --- STEP 2: WRITE PHASE ---
+                for (const { item, snap, ref } of updates) {
+                    const productData = snap.data();
                     const variants = [...(productData.variants || [])];
 
-                    // ✅ จุดสำคัญ: แก้ไขการ Matching ให้ตรงกับ Database ของคุณ
-                    // ใน Order ใช้: selectedColor, selectedSize
-                    // ใน Variants ใช้: color, size
                     const vIndex = variants.findIndex(v => 
                         String(v.color || '').trim().toUpperCase() === String(item.selectedColor || '').trim().toUpperCase() && 
                         String(v.size || '').trim().toUpperCase() === String(item.selectedSize || '').trim().toUpperCase()
@@ -144,19 +141,14 @@ const OrderSection = ({ orders, fetchOrders, searchTerm, setSearchTerm, setSelec
                         const currentStock = Number(variants[vIndex].stock || 0);
                         const buyQty = Number(item.quantity || 1);
 
-                        // คำนวณสต็อกใหม่ของตัวเลือกนั้น
                         variants[vIndex].stock = Math.max(0, currentStock - buyQty);
-                        
-                        // คำนวณสต็อกรวมทั้งหมดของสินค้า (totalStock)
                         const newTotalStock = variants.reduce((sum, v) => sum + Number(v.stock || 0), 0);
 
-                        // อัปเดตกลับไปยัง Firestore
-                        transaction.update(productRef, { 
+                        transaction.update(ref, { 
                             variants: variants, 
                             totalStock: newTotalStock 
                         });
 
-                        // บันทึก Log ประวัติการตัดสต็อก (ถ้ามีคอลเลกชันนี้)
                         const logRef = doc(collection(db, "inventoryLogs"));
                         transaction.set(logRef, {
                             type: "DEDUCT",
@@ -167,16 +159,22 @@ const OrderSection = ({ orders, fetchOrders, searchTerm, setSearchTerm, setSelec
                             variant: `${item.selectedColor} / ${item.selectedSize}`,
                             quantity: buyQty,
                             timestamp: serverTimestamp(),
-                            adminNote: "ตัดสต็อกอัตโนมัติ (แอนมินยืนยันชำระเงิน)"
+                            adminNote: "ตัดสต็อกอัตโนมัติ (แอดมินยืนยันชำระเงิน)"
                         });
-                    } else {
-                        console.error("❌ หาตัวเลือกสินค้า (Variant) ไม่เจอ:", item.selectedColor, item.selectedSize);
                     }
                 }
-                
-                // อัปเดตสถานะออเดอร์เป็นกำลังเตรียมจัดส่ง
+
+                // อัปเดตสถานะ Order
                 transaction.update(doc(db, "orders", orderId), { status: 'processing' });
             });
+
+            // --- STEP 3: AFTER TRANSACTION (Non-atomic tasks) ---
+            await sendNotification(
+                orderData.userId, 
+                "ชำระเงินสำเร็จ", 
+                `ออเดอร์ ${orderData.orderId} ของคุณได้รับการยืนยันแล้ว กำลังเตรียมจัดส่งสินค้าครับ`,
+                orderData.items?.[0]?.id || null
+            );
 
             alert("✅ ยืนยันชำระเงินและตัดสต็อกเรียบร้อย!");
             if (typeof fetchOrders === 'function') fetchOrders();

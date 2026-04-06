@@ -142,7 +142,7 @@ const NotificationDrawer = ({ isOpen, onClose, notifications }) => {
                                                 }}
                                             >
                                                 <Star size={14} fill="#FFD700" color="#FFD700" />
-                                                รีวิวสินค้าและรับแต้ม
+                                                รีวิวสินค้า
                                             </button>
                                         </div>
                                     )}

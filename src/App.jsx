@@ -11,70 +11,82 @@ import AdminDashboard from './components/AdminDashboard';
 import Profile from './components/Profile';
 import ProductDetail from './components/ProductDetail';
 import ForgotPassword from './components/ForgotPassword';
-// ฟังก์ชันป้องกัน Guest (ถ้าไม่มี User ให้เด้งไป Sign In)
-const ProtectedRoute = ({ children, user }) => user ? children : <Navigate to="/signin" replace />;
 
-// ฟังก์ชันป้องกันคนที่ Login แล้ว (ถ้า Login แล้วไม่ควรเข้าหน้า Sign In/Up ได้อีก)
+const ProtectedRoute = ({ children, user }) => user ? children : <Navigate to="/signin" replace />;
 const AuthRoute = ({ children, user }) => user ? <Navigate to="/" replace /> : children;
 
 function App() {
   const { user, isLoading } = useAuthStatus();
-  const [cart, setCart] = useState([]);
-  const [favorites, setFavorites] = useState([]);
+  
+  // 1. กำหนดค่าเริ่มต้นโดยพยายามดึงจาก LocalStorage ก่อน
+  const [cart, setCart] = useState(() => {
+    const savedCart = localStorage.getItem('local-cart');
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
+  
+  const [favorites, setFavorites] = useState(() => {
+    const savedFavs = localStorage.getItem('local-favorites');
+    return savedFavs ? JSON.parse(savedFavs) : [];
+  });
+
+  // 2. บันทึกข้อมูลลง LocalStorage ทุกครั้งที่ State เปลี่ยน
+  useEffect(() => {
+    localStorage.setItem('local-cart', JSON.stringify(cart));
+  }, [cart]);
+
+  useEffect(() => {
+    localStorage.setItem('local-favorites', JSON.stringify(favorites));
+  }, [favorites]);
 
   // --- ฟังก์ชันจัดการตระกร้าสินค้า ---
-  // --- ฟังก์ชันจัดการตระกร้าสินค้า (แก้ไขใหม่) ---
-const addToCart = (productWithOption) => {
-  setCart((prevCart) => {
-    // ใช้ cartId ในการเช็ค (ซึ่งคือ id-color-size จาก ProductDetail)
-    const existingItem = prevCart.find((item) => item.cartId === productWithOption.cartId);
-    
-    if (existingItem) {
-      return prevCart.map((item) =>
-        item.cartId === productWithOption.cartId 
-          ? { ...item, quantity: item.quantity + 1 } 
-          : item
-      );
-    }
-    // ถ้ายังไม่มี ให้เพิ่มเข้าไปเป็นรายการใหม่
-    return [...prevCart, { ...productWithOption, quantity: 1 }];
-  });
-};
-
-const removeFromCart = (cartId) => {
-  // เปลี่ยนจาก productId เป็น cartId
-  setCart((prevCart) => prevCart.filter((item) => item.cartId !== cartId));
-};
-
-const updateQuantity = (cartId, amount) => {
-  // เปลี่ยนจาก productId เป็น cartId
-  setCart((prevCart) =>
-    prevCart.map((item) => {
-      if (item.cartId === cartId) {
-        const newQuantity = item.quantity + amount;
-        return { ...item, quantity: newQuantity > 0 ? newQuantity : 1 };
+  const addToCart = (productWithOption) => {
+    setCart((prevCart) => {
+      const existingItem = prevCart.find((item) => item.cartId === productWithOption.cartId);
+      if (existingItem) {
+        return prevCart.map((item) =>
+          item.cartId === productWithOption.cartId 
+            ? { ...item, quantity: item.quantity + 1 } 
+            : item
+        );
       }
-      return item;
-    })
-  );
-};
-  
-  // ใน App.js
-useEffect(() => {
+      return [...prevCart, { ...productWithOption, quantity: 1 }];
+    });
+  };
+
+  const removeFromCart = (cartId) => {
+    setCart((prevCart) => prevCart.filter((item) => item.cartId !== cartId));
+  };
+
+  const updateQuantity = (cartId, amount) => {
+    setCart((prevCart) =>
+      prevCart.map((item) => {
+        if (item.cartId === cartId) {
+          const newQuantity = item.quantity + amount;
+          return { ...item, quantity: newQuantity > 0 ? newQuantity : 1 };
+        }
+        return item;
+      })
+    );
+  };
+    
+  // จัดการเคลียร์ข้อมูลเมื่อ Logout (ปรับปรุงให้เคลียร์ LocalStorage ด้วย)
+  useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
         if (!user) {
-            // 🛑 เมื่อไม่มีผู้ใช้ (Logged Out) ให้ล้างข้อมูลทันที
             setCart([]);
             setFavorites([]);
+            localStorage.removeItem('local-cart');
+            localStorage.removeItem('local-favorites');
         }
     });
     return () => unsubscribe();
-}, []);
+  }, []);
 
-  // 🔥 เพิ่มฟังก์ชันล้างตะกร้า (ใช้หลังสั่งซื้อสำเร็จ)
-  const clearCart = () => setCart([]);
+  const clearCart = () => {
+    setCart([]);
+    localStorage.removeItem('local-cart');
+  };
 
-  // --- ฟังก์ชันจัดการรายการโปรด ---
   const toggleFavorite = (product) => {
     setFavorites((prevFavorites) => {
       const isExist = prevFavorites.find((item) => item.id === product.id);
@@ -103,13 +115,12 @@ useEffect(() => {
         />
       } />
 
-      {/* 🔒 หน้า Checkout (ต้อง Login เท่านั้น) */}
       <Route path="/checkout" element={
         <ProtectedRoute user={user}>
           <Checkout 
             user={user} 
             cart={cart} 
-            clearCart={clearCart} // 🔥 ส่งฟังก์ชันเคลียร์ตะกร้า
+            clearCart={clearCart}
             removeFromCart={removeFromCart} 
             updateQuantity={updateQuantity} 
             favorites={favorites} 
@@ -118,12 +129,12 @@ useEffect(() => {
         </ProtectedRoute>
       } />
 
-      {/* 🔒 หน้า Admin (ต้อง Login เท่านั้น) */}
       <Route path="/admin-dashboard" element={
         <ProtectedRoute user={user}>
           <AdminDashboard user={user} />
         </ProtectedRoute>
       } />
+
       <Route 
         path="/product/:id" 
         element={
@@ -138,20 +149,21 @@ useEffect(() => {
           />
         } 
       />
+
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/signin" element={<AuthRoute user={user}><SignIn /></AuthRoute>} />
       <Route path="/signup" element={<AuthRoute user={user}><SignUp /></AuthRoute>} />
       <Route path="*" element={<div style={{ textAlign: 'center', padding: '50px' }}>404 Not Found</div>} />
       <Route path="/profile" element={
-      <ProtectedRoute user={user}>
-        <Profile 
-            user={user} 
-            cart={cart} 
-            addToCart={addToCart} 
-            favorites={favorites} 
-            toggleFavorite={toggleFavorite} 
-        />
-    </ProtectedRoute>
+        <ProtectedRoute user={user}>
+          <Profile 
+              user={user} 
+              cart={cart} 
+              addToCart={addToCart} 
+              favorites={favorites} 
+              toggleFavorite={toggleFavorite} 
+          />
+        </ProtectedRoute>
       } />
     </Routes>
   );

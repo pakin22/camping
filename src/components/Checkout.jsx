@@ -336,21 +336,34 @@ const Checkout = (props) => {
                         <h3 style={{ marginBottom: '20px', fontSize: '18px', fontWeight: '700' }}>สรุปรายการสั่งซื้อ</h3>
                         
                         <div style={{ ...styles.cartList, maxHeight: '250px', overflowY: 'auto' }}>
-                            {cartItems.map((item, index) => (
-                                <div key={item.id || index} style={{ display: 'flex', gap: '12px', marginBottom: '16px', alignItems: 'center' }}>
+                           {cartItems.map((item, index) => {
+                            // 1. สร้าง Key พิเศษขึ้นมาโดยรวมเอาคุณสมบัติที่ต่างกันมาต่อกัน
+                            // ผลลัพธ์จะได้ประมาณนี้: "prod123-Red-L-0"
+                            const uniqueKey = `${item.id}-${item.selectedColor}-${item.selectedSize}-${index}`;
+
+                            return (
+                                <div 
+                                    key={uniqueKey} // 2. นำ Key ที่สร้างไว้มาใช้ตรงนี้
+                                    style={{ display: 'flex', gap: '12px', marginBottom: '16px', alignItems: 'center' }}
+                                >
                                     <div style={{ width: '55px', height: '55px', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#f5f5f7', flexShrink: 0 }}>
                                         <img src={item.imageUrl} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                     </div>
+                                    
                                     <div style={{ flex: 1 }}>
                                         <div style={{ fontWeight: '600', fontSize: '14px', lineHeight: '1.2' }}>{item.name}</div>
-                                        <div style={{ fontSize: '12px', color: '#8e8e93' }}>x{item.quantity} | {item.selectedColor} {item.selectedSize}</div>
+                                        <div style={{ fontSize: '12px', color: '#8e8e93' }}>
+                                            x{item.quantity} | {item.selectedColor} {item.selectedSize}
+                                        </div>
                                     </div>
+                                    
                                     <div style={{ fontWeight: '600', fontSize: '14px' }}>
                                         ฿{((Number(item.price) || 0) * (Number(item.quantity) || 0)).toLocaleString()}
                                     </div>
                                 </div>
-                            ))}
-                        </div>
+                            );
+                        })}
+                                                </div>
 
                         {/* ช่องใส่คูปองส่วนลด */}
                         <div style={{ marginTop: '20px', padding: '15px 0', borderTop: `1px solid ${theme.border}` }}>
