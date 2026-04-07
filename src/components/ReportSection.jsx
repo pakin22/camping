@@ -35,7 +35,7 @@ const ReportSection = ({ orders = [] }) => {
         const now = new Date();
         const stats = {};
         let totalRev = 0;
-
+        // กรองข้อมูล ก่อนคำนวณรายได้
         const filtered = orders.filter(order => {
             // 1. แปลงวันที่ (รองรับทั้ง Firebase Timestamp และ Date ปกติ)
             const orderDate = order.createdAt?.toDate ? order.createdAt.toDate() : new Date(order.createdAt);
@@ -45,6 +45,7 @@ const ReportSection = ({ orders = [] }) => {
             if (['cancelled', 'pending'].includes(status)) return false;
             
             // 3. เช็คเงื่อนไขเวลา (วันนี้ / เดือนนี้ / เลือกเอง)
+            //.toDateString()	แปลงวันที่ให้เหลือแค่ข้อความสั้นๆ	"Tue Apr 07 2026"
             if (timeRange === 'today') return orderDate.toDateString() === now.toDateString();
             if (timeRange === 'month') return orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear();
             if (timeRange === 'custom') {
@@ -72,9 +73,7 @@ const ReportSection = ({ orders = [] }) => {
             });
         });
 
-        const products = Object.entries(stats)
-            .map(([name, d]) => ({ name, ...d }))
-            .sort((a, b) => b.qty - a.qty);
+        const products = Object.entries(stats).map(([name, d]) => ({ name, ...d })).sort((a, b) => b.qty - a.qty);
 
         return {
             totalRev,

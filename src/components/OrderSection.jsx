@@ -69,9 +69,7 @@ const OrderSection = ({ orders, fetchOrders, searchTerm, setSearchTerm, setSelec
 
         try {
             const orderRef = doc(db, "orders", currentOrder.id);
-            const firstProductId = currentOrder.items && currentOrder.items.length > 0 
-                ? currentOrder.items[0].id 
-                : null;
+            const firstProductId = currentOrder.items && currentOrder.items.length > 0 ? currentOrder.items[0].id : null;
 
             await updateDoc(orderRef, {
                 status: 'shipped',
@@ -106,6 +104,7 @@ const OrderSection = ({ orders, fetchOrders, searchTerm, setSearchTerm, setSelec
         if (!orderData) return;
 
         if (newStatus === 'processing') {
+            //เช็คสถานะปัจจุบันในฐานข้อมูลว่า "ไม่ใช่สถานะรอการตรวจสอบ
             if (orderData.status !== 'pending') {
                 alert("ออเดอร์นี้ดำเนินการไปแล้ว");
                 return;
@@ -114,14 +113,17 @@ const OrderSection = ({ orders, fetchOrders, searchTerm, setSearchTerm, setSelec
             const confirmAction = window.confirm("ยืนยันการชำระเงินและตัดสต็อกสินค้า?");
             if (!confirmAction) return;
 
-            // เริ่ม Transaction
+            // จัดการสต๊อคสินค้า
             await runTransaction(db, async (transaction) => {
                 const items = orderData.items || [];
                 const updates = [];
 
                 // --- STEP 1: READ PHASE ---
+                //ในขั้นตอนนี้ Firebase จะทำการ "สแกน" สินค้าทั้งหมดในออเดอร์นั้นก่อน
+                
                 for (const item of items) {
                     const productRef = doc(db, "products", item.id);
+                    //เป็นการ "จอง" ข้อมูลสินค้าชิ้นนั้นจาก Firebase ไว้ชั่วคราว เพื่อป้องกันไม่ให้คนอื่นมาแก้สต็อกในวินาทีเดียวกับที่เรากำลังคำนวณอยู่
                     const snap = await transaction.get(productRef);
                     if (!snap.exists()) throw new Error(`Product ${item.id} not found`);
                     updates.push({ item, snap, ref: productRef });
@@ -133,6 +135,7 @@ const OrderSection = ({ orders, fetchOrders, searchTerm, setSearchTerm, setSelec
                     const variants = [...(productData.variants || [])];
 
                     const vIndex = variants.findIndex(v => 
+                        //.findIndex() หาว่า "สีและไซส์" ที่ลูกค้าสั่ง ตรงกับสต็อกช่องไหน โดยใช้ .toUpperCase() เพื่อให้พิมพ์ตัวเล็กหรือตัวใหญ่ก็หาเจอ
                         String(v.color || '').trim().toUpperCase() === String(item.selectedColor || '').trim().toUpperCase() && 
                         String(v.size || '').trim().toUpperCase() === String(item.selectedSize || '').trim().toUpperCase()
                     );
@@ -140,8 +143,9 @@ const OrderSection = ({ orders, fetchOrders, searchTerm, setSearchTerm, setSelec
                     if (vIndex !== -1) {
                         const currentStock = Number(variants[vIndex].stock || 0);
                         const buyQty = Number(item.quantity || 1);
-
+                        //ถ้ามีของ 2 ชิ้น แต่ลูกค้าสั่ง 5 ชิ้น (กรณีสต็อกคลาดเคลื่อน) ปกติ 2 - 5 = -3 แต่เมื่อผ่าน Math.max(0, -3) ผลลัพธ์จะกลายเป็น 0 ทันที
                         variants[vIndex].stock = Math.max(0, currentStock - buyQty);
+                        //รวมทุกสีทุกไซส์แล้วเหลือกี่่ชิ้น
                         const newTotalStock = variants.reduce((sum, v) => sum + Number(v.stock || 0), 0);
 
                         transaction.update(ref, { 
@@ -197,6 +201,7 @@ const OrderSection = ({ orders, fetchOrders, searchTerm, setSearchTerm, setSelec
             if (!confirmCancel) return;
 
             await runTransaction(db, async (transaction) => {
+                // ถ้าออเดอร์ เป็น pending ก็แค่เปลี่ยนไปเป็น cancelled 
                 if (orderData.status !== 'pending' && orderData.status !== 'cancelled') {
                     for (const item of items) {
                         const productRef = doc(db, "products", item.id);

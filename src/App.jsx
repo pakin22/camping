@@ -40,9 +40,11 @@ function App() {
 
   // --- ฟังก์ชันจัดการตระกร้าสินค้า ---
   const addToCart = (productWithOption) => {
+
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => item.cartId === productWithOption.cartId);
       if (existingItem) {
+        //ถ้าใช่: "ให้ก๊อปปี้ข้อมูลเดิมไว้ แต่เปลี่ยนแค่จำนวน (quantity) โดยเอาของเก่ามา +1"
         return prevCart.map((item) =>
           item.cartId === productWithOption.cartId 
             ? { ...item, quantity: item.quantity + 1 } 
@@ -52,11 +54,11 @@ function App() {
       return [...prevCart, { ...productWithOption, quantity: 1 }];
     });
   };
-
+ //ลบตะกร้าสินค้า
   const removeFromCart = (cartId) => {
     setCart((prevCart) => prevCart.filter((item) => item.cartId !== cartId));
   };
-
+ //อัพเดทจำนวนสินค้า
   const updateQuantity = (cartId, amount) => {
     setCart((prevCart) =>
       prevCart.map((item) => {
@@ -90,6 +92,7 @@ function App() {
   const toggleFavorite = (product) => {
     setFavorites((prevFavorites) => {
       const isExist = prevFavorites.find((item) => item.id === product.id);
+      //ถ้ามีสินค้าที่ชอบอยู่แล้ว กดอีกครั้งเพื่อยกเลิกทีชอบ แต่ถ้าไม่มีก็จะสามารถกดได้เลย
       if (isExist) return prevFavorites.filter((item) => item.id !== product.id);
       return [...prevFavorites, product];
     });

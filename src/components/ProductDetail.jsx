@@ -36,6 +36,7 @@ const ProductDetail = ({ user, addToCart, favorites, toggleFavorite, cart, remov
 
     // --- ตรวจสอบสถานะ Flash Sale ---
     const isFlashSaleActive = useMemo(() => {
+        //ถ้า ไม่มี ข้อมูลสินค้า หรือ สินค้านี้ ไม่ใช่ รายการ Flash Sale หรือ ไม่ได้ระบุ
         if (!product || !product.isFlashSale || !product.saleEndDate) return false;
         
         const now = new Date();
@@ -116,6 +117,7 @@ const ProductDetail = ({ user, addToCart, favorites, toggleFavorite, cart, remov
         if (id) fetchReviews();
     }, [id]);
 
+    //ลบรีวิว
     const handleDeleteReview = async (reviewId) => {
         if (window.confirm("คุณแน่ใจใช่ไหมที่จะลบรีวิวนี้? การกระทำนี้ไม่สามารถย้อนกลับได้")) {
             try {
@@ -135,6 +137,7 @@ const ProductDetail = ({ user, addToCart, favorites, toggleFavorite, cart, remov
         }
     }, [location]);
 
+    //พิมข้อความรีวิว
     const handleReviewSubmit = async () => {
         if (!comment.trim()) return alert("กรุณาพิมพ์ข้อความรีวิว");
         setSubmitting(true);
@@ -262,8 +265,9 @@ const ProductDetail = ({ user, addToCart, favorites, toggleFavorite, cart, remov
                             </div>
                         </div>
 
-                        {/* Actions */}
+                        {/* Actions */} 
                         <div style={{ display: 'flex', gap: '16px', marginBottom: '60px' }}>
+                            
                             <button 
                                 onClick={() => {
                                     if(!selectedSize) return;
@@ -275,12 +279,12 @@ const ProductDetail = ({ user, addToCart, favorites, toggleFavorite, cart, remov
                                         maxStock: sv?.stock || 0, 
                                         cartId: `${product.id}-${selectedColor}-${selectedSize}`
                                     });
-                                    alert("เพิ่มลงถุงสินค้าแล้ว");
+                                    alert("เพิ่มลงตะกร้าสินค้าแล้ว");
                                 }}
                                 disabled={!selectedSize}
                                 style={{ flex: 1, padding: '20px', borderRadius: '18px', border: 'none', backgroundColor: selectedSize ? '#000' : '#e5e5e7', color: '#fff', fontWeight: '600', cursor: selectedSize ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}
                             >
-                                <ShoppingBagIcon /> ใส่ลงในถุง
+                                <ShoppingBagIcon /> ใส่ลงในตะกร้า
                             </button>
                             <button onClick={() => toggleFavorite(product)} style={{ width: '64px', height: '64px', borderRadius: '18px', border: '1px solid #d2d2d7', backgroundColor: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isFavorite ? '#ff4d4f' : '#1d1d1f' }}>
                                 {isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}

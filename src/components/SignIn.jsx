@@ -174,9 +174,8 @@ function SignIn() {
     }
   };
 
-  
-
   const handleEmailSignIn = async (e) => {
+    //ไม่ต้องให้รีหน้า
     e.preventDefault();
     setError('');
     try {

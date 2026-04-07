@@ -34,7 +34,7 @@ const Profile = ({ user, cart, addToCart, favorites, toggleFavorite }) => {
         zipCode: ''
     });
     
-   // เปลี่ยนบรรทัดนี้ใน Profile.jsx
+    
 const [imagePreview, setImagePreview] = useState(user?.photoURL || `https://ui-avatars.com/api/?name=${user?.email}&background=random`);
 
     // 1. ดึงข้อมูล Profile และประวัติการสั่งซื้อ

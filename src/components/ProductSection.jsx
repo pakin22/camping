@@ -100,6 +100,7 @@ styleTag.innerHTML = `
         const saveLog = async (action, details) => {
             try {
                 const user = auth.currentUser;
+                //ถ้าไม่มี User ให้เลิกทำต่อทันที
                 if (!user) return;
                 const userDocRef = doc(db, "users", user.uid);
                 const userSnap = await getDoc(userDocRef);
@@ -125,8 +126,9 @@ styleTag.innerHTML = `
                 setCategories(list);
                 if (list.length > 0 && !category) setCategory('ทั่วไป');
             });
-
+            //ไปเอาข้อมูลจากกล่อง products มานะ และเรียงตามวันที่สร้าง (createdAt) จากใหม่ไปเก่า (desc)"
             const unsubProd = onSnapshot(query(collection(db, "products"), orderBy("createdAt", "desc")), (snap) => {
+                //แล้วเอา id ของเอกสารมาแปะรวมกับข้อมูลสินค้า (...d.data()) ก่อนจะสั่ง setProducts เพื่อโชว์บนหน้าจอ
                 setProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
             });
 
@@ -185,6 +187,7 @@ styleTag.innerHTML = `
                     const q = query(collection(db, "products"), where("category", "==", catName));
                     const querySnapshot = await getDocs(q);
                     querySnapshot.forEach((productDoc) => {
+                        //batch.update: สั่งว่า "สินค้าตัวนี้ ให้เปลี่ยนชื่อหมวดเป็น 'ทั่วไป'" (แต่ยังไม่เปลี่ยนทันที แค่จดไว้ในลิสต์)
                         batch.update(doc(db, "products", productDoc.id), { category: 'ทั่วไป', updatedAt: serverTimestamp() });
                     });
                     batch.delete(doc(db, "categories", id));
@@ -235,7 +238,7 @@ styleTag.innerHTML = `
         };
 
         const startEdit = (product) => {
-        setEditingId(product.id);
+        setEditingId(product.id); // บันทึกไว้ว่าเรากำลังแก้ ID ไหน
         setName(product.name);
         setCategory(product.category);
         setPrice(product.price);

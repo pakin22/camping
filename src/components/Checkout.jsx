@@ -52,6 +52,7 @@ const Checkout = (props) => {
     const subtotal = cartItems.reduce((sum, item) => {
         const price = Number(item.price) || 0;
         const qty = Number(item.quantity) || 0;
+        //ทำที่ละรอบที่ละชิ้น
         return sum + (price * qty);
     }, 0);
 

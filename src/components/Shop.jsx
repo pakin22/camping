@@ -74,11 +74,13 @@ const styles = {
 };
 
 // --- Helpers ---
+//ตอนนี้อยู่ในช่วงเวลาลดไหม
 const isSaleActive = (endDate) => {
     if (!endDate) return false;
     const now = new Date(); //เวลาปัจจุบันของผู้ใช้
+    //1,000: เพราะ Firebase ให้หน่วยมาเป็น วินาที (Seconds) แต่ฟังก์ชัน new Date() ของ JavaScript ต้องการหน่วยเป็น มิลลิวินาที (Milliseconds)
     const end = endDate.seconds ? new Date(endDate.seconds * 1000) : new Date(endDate);
-    return end > now;
+    return end > now;// ถ้าเวลาจบ "มากกว่า" เวลาปัจจุบัน แปลว่ายังลดอยู่
 };
 
 // --- Sub-Component: CountdownTimer ---
@@ -86,7 +88,7 @@ const CountdownTimer = ({ endDate, showLabel = false }) => {
     const calculateTimeLeft = () => {
         const end = endDate?.seconds ? new Date(endDate.seconds * 1000) : new Date(endDate);
         const diff = +end - +new Date(); // นำเวลามาลบกันในหน่วยมิลลิวินาที การใส่เครื่องหมายบวกหน้าวัตถุที่เป็น Date จะเป็นการบังคับให้ JavaScript เปลี่ยน "วันที่" ให้กลายเป็นตัวเลข
-        if (diff <= 0) return null;
+        if (diff <= 0) return null; //// ถ้าหมดเวลาแล้ว คืนค่าว่าง
         return {
             h: Math.floor(diff / (1000 * 60 * 60)), //เอา 1,000 (มิลลิวินาที) 60 (วินาที)  60 (นาที) เพื่อหาว่ามีกี่ชั่วโมง
             m: Math.floor((diff / 1000 / 60) % 60),
@@ -94,6 +96,7 @@ const CountdownTimer = ({ endDate, showLabel = false }) => {
         };
     };
     const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+
     useEffect(() => {
         const timer = setInterval(() => setTimeLeft(calculateTimeLeft()), 1000);
         return () => clearInterval(timer);
@@ -116,6 +119,7 @@ const CountdownTimer = ({ endDate, showLabel = false }) => {
 const ProductCard = ({ product, isFavorite, onToggleFavorite }) => {
     const navigate = useNavigate();
     const [isHovered, setIsHovered] = useState(false);
+    
     const activeFlashSale = product.isFlashSale && isSaleActive(product.saleEndDate);
     const displayPrice = activeFlashSale ? product.salePrice : product.price;
 
@@ -193,6 +197,7 @@ function Shop({ user, cart, favorites, toggleFavorite, onSignOut, removeFromCart
         fetchData();
     }, []);
     // 1. กรองเอาเฉพาะสินค้าที่กำลัง Flash Sale อยู่จริงๆ
+    //ดูว่า flashsale เปิดอยู่มั้ยและ saleActive ยังไม่หมดเวลาลดใช่มั้ย
     const flashSaleProducts = products.filter(p => p.isFlashSale && isSaleActive(p.saleEndDate));
     // 2. เช็คว่าตอนนี้มีสินค้าลดราคาอยู่ไหม (ถ้าความยาว Array มากกว่า 0 แปลว่ามี)
     const hasActiveFlashSale = flashSaleProducts.length > 0;

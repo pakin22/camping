@@ -116,7 +116,7 @@ function AdminDashboard() {
                         style={{ ...styles.modal, padding: 0, width: '900px', overflow: 'hidden', display: 'flex' }} 
                         onClick={e => e.stopPropagation()}
                     >
-                        {/* ฝั่งซ้าย: ข้อมูลสินค้า */}
+    
                         {/* ฝั่งซ้าย: ข้อมูลลูกค้าและรายการสินค้า */}
 <div style={{ flex: 1.2, padding: '30px', backgroundColor: '#fff', overflowY: 'auto', maxHeight: '80vh' }}>
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
