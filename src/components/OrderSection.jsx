@@ -321,6 +321,7 @@ const OrderSection = ({ orders, fetchOrders, searchTerm, setSearchTerm, setSelec
                                                 <img src={order.slipUrl} style={{width: '35px', height: '45px', objectFit: 'cover', borderRadius: '4px', cursor: 'pointer'}} alt="slip" onClick={() => setSelectedOrder(order)} />
                                             ) : <span style={{fontSize: '10px', color: '#ccc'}}>N/A</span>}
                                         </td>
+                                        {/*สถานนะ*/}
                                         <td style={styles.td}>
                                             <div style={{ ...styles.statusBadge, color: s.color, backgroundColor: s.bg }}>
                                                 {s.text}

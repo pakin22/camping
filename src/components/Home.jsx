@@ -57,6 +57,7 @@ const ProductCard = ({ product, onAddToCart, isFavorite, onToggleFavorite }) => 
                 <img src={product.imageUrl || 'https://via.placeholder.com/500'} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s ease', transform: isHover ? 'scale(1.08)' : 'scale(1)' }} />
                 
                 <button
+                    //stopPropagation คือสั่งให้หยุดไม่ให้มันทะลุไปหน้ารายละเอียดสินค้า
                     onClick={(e) => { e.stopPropagation(); onToggleFavorite(product); }}
                     style={{
                         position: 'absolute', top: '15px', right: '15px', backgroundColor: '#fff', border: 'none', borderRadius: '50%', 
@@ -76,6 +77,7 @@ const ProductCard = ({ product, onAddToCart, isFavorite, onToggleFavorite }) => 
                     <p style={{ fontSize: '18px', fontWeight: '700', color: activeFlashSale ? colors.error : colors.black }}>฿{displayPrice?.toLocaleString()}</p>
                     {activeFlashSale && <span style={{ textDecoration: 'line-through', color: '#bbb', fontSize: '13px' }}>฿{product.price?.toLocaleString()}</span>}
                 </div>
+                
                 <button onClick={(e) => { e.stopPropagation(); onAddToCart(product); }} style={styles.addButton(isHover)}>ดูรายละเอียดสินค้า</button>
             </div>
         </div>

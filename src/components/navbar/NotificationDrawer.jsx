@@ -92,9 +92,7 @@ const NotificationDrawer = ({ isOpen, onClose, notifications }) => {
                             
                             // เงื่อนไขการแสดงปุ่มรีวิว: 
                             // 1. ต้องมีรหัสสินค้า 2. สถานะสำเร็จแล้ว 3. ***ต้องยังไม่เคยรีวิว (isReviewed ไม่เป็น true)***
-                            const canReview = note.productId && 
-                                             (note.title?.includes("จัดส่งแล้ว") || status === 'completed') && 
-                                             !note.isReviewed;
+                            const canReview = note.productId && (note.title?.includes("จัดส่งแล้ว") || status === 'completed') && !note.isReviewed;
 
                             return (
                                 <div key={note.id} style={{ 

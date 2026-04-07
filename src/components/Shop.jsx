@@ -261,6 +261,7 @@ function Shop({ user, cart, favorites, toggleFavorite, onSignOut, removeFromCart
                                     type="text" 
                                     placeholder="ค้นหาอุปกรณ์แคมป์ปิ้ง..." 
                                     value={searchQuery}
+                                    //e.target.value แปลว่า "ขอเอาข้อความที่พิมพ์อยู่ในช่องเนี้ย ไปเก็บไว้ในความจำ (State) หน่อยนะ
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     style={{
                                         width: '100%',
@@ -273,6 +274,7 @@ function Shop({ user, cart, favorites, toggleFavorite, onSignOut, removeFromCart
                                         transition: 'all 0.3s ease',
                                         boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
                                     }}
+                                    //ช่วยเปลี่ยนสีขอบของ 'ช่องที่ฉันกำลังจิ้มอยู่เนี่ย' ให้เป็นสีดำที"
                                     onFocus={(e) => e.target.style.borderColor = colors.black}
                                     onBlur={(e) => e.target.style.borderColor = colors.border}
                                 />
